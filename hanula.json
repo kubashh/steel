@@ -1,12 +1,14 @@
 {
   "compiler": "gcc",
+  "version": "0.1.0-dev",
+  "license": "MIT",
   "entries": [
     {
       "name": "hanula",
       "headers": "./dist/headers.h",
       "exe": "./dist/hanula",
       "lib": "./dist/hanula.c",
-      "include": ["./src/hanula.c", "./src/compiler/compiler.c"]
+      "include": ["./examples/helloWorld.c"]
     }
   ]
 }

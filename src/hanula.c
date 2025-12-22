@@ -2,7 +2,6 @@
 #include "cli/cli.c"
 #include "compiler/compiler.c"
 #include "lib/config_alloc.c"
-#include "lib/hjson.c"
 
 void compileUtil(ConfEntry entry, char* ccomp) {
     bool isLib = true;
@@ -13,35 +12,20 @@ void compileUtil(ConfEntry entry, char* ccomp) {
     compiler(entry);
 
     // C compile
-    char buf[64];
-    sprintf(buf, "%s %s -o%s\n", ccomp, entry.lib, entry.exe);
-    printf("%s", buf);
-    system(buf);
+    // char buf[64];
+    // sprintf(buf, "%s %s -o%s\n", ccomp, entry.lib, entry.exe);
+    // printf("%s", buf);
+    // system(buf);
 }
 
 void build(u8 args_len, char *args[]) {
-    printf("Building project...\n");
+    // printf("Building project...\n");
 
-    // Config
-    char* configText = readFileAlloc("hanula.json");
-    if(!configText) {
-        printf("No config file (hanula.json)!");
-        exit(0);
-    }
+    // u64 start = measure_start();
+    HConfig config = hconfig_init();
+    // measure_end("Config", start);
 
-    HJson_init(configText);
-    exit(0);
-
-    // Create an instance of HConfig
-    HConfig config;
-
-    // Parse the JSON string into HConfig
-    if (parse_json_to_hconfig(configText, &config) != 0) {
-        printf("Failed to parse JSON.\n"); // Failed to parsed JSON into HConfig
-        exit(0);
-    }
-
-    printf("Compiler: %s\n", config.compiler);
+    // printf("Compiler: %s\n", config.compiler);
 
     if(args_len < 3) {
         for(u8 i = 0; i < config.entries_len; i++) {
@@ -61,7 +45,6 @@ void build(u8 args_len, char *args[]) {
 
     // Free the allocated memory
     free_hconfig(&config);
-    free(configText);
     printf("Done.\n");
 }
 

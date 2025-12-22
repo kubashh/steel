@@ -2,7 +2,7 @@
 clear
 
 # Build
-gcc src/hanula.c -ohanula
+gcc src/hanula.c -odist/hanula
 
 # Run
-./hanula $1 $2 $3 $4
+./dist/hanula $1 $2 $3 $4

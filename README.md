@@ -14,6 +14,8 @@ add `*.ha` `c`
 - `C` headers exporter
 - `C` json parser
 - `C` cross utils
+- `C` auto includer
+- `C` printf format only %i %c %s, all %d, #li... auto compile
 
 <!-- ? `C` formatter and build kit?
 
@@ -23,7 +25,7 @@ add `*.ha` `c`
 - default cross platform `C`
 - fast as `C`
 - no header files
-- pascal (zig, rust) like types `var i: i32 = 3`
+- pascal (zig, rust) like types `var i: i32 = 3` | `var i = 3`
 - zero cost apstraction
 - OPP support (similar to zig)
 - easy build/config
@@ -33,9 +35,12 @@ add `*.ha` `c`
 
 ## TODO
 
-### 0.1.0
+- read and execute config (v0.1.0)
+- export headers (v0.1.0)
+- auto include (v0.2.0)
+- just work with `C` code builder (v0.2.0)
+- json parser (v0.3.0)
 
-- just work with `C` code builder
-- json parser
-- export headers
-- read and execute config
+### 0.1.0-dev (Pending...)
+
+- in progress

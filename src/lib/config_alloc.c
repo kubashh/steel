@@ -1,14 +1,13 @@
 #include "cross_util.c"
 #include "cJSON.c"
 #include "consts.c"
-#include "cross_util.c"
 
 // Function to parse JSON and populate HConfig
 i8 parse_json_to_hconfig(const char* json_str, HConfig* config) {
     // Parse the JSON string using cJSON
     cJSON* json = cJSON_Parse(json_str);
     if (json == NULL) {
-        printf("Error parsing JSON\n");
+        printf("Error parsing JSON config hanula.json\n");
         return -1;
     }
 
@@ -24,7 +23,7 @@ i8 parse_json_to_hconfig(const char* json_str, HConfig* config) {
         config->entries_len = cJSON_GetArraySize(entries_item);
         config->entries = malloc(sizeof(ConfEntry) * config->entries_len);
 
-        for (int i = 0; i < config->entries_len; i++) {
+        for (u8 i = 0; i < config->entries_len; i++) {
             cJSON* entry_item = cJSON_GetArrayItem(entries_item, i);
             cJSON* temp_item;
 
@@ -57,10 +56,10 @@ i8 parse_json_to_hconfig(const char* json_str, HConfig* config) {
             // Extract "include" array
             temp_item = cJSON_GetObjectItemCaseSensitive(entry_item, "include");
             if (cJSON_IsArray(temp_item)) {
-                int include_len = cJSON_GetArraySize(temp_item);
+                u8 include_len = cJSON_GetArraySize(temp_item);
                 config->entries[i].include = malloc(sizeof(char*) * include_len);
 
-                for (int j = 0; j < include_len; j++) {
+                for (u8 j = 0; j < include_len; j++) {
                     cJSON* include_str_item = cJSON_GetArrayItem(temp_item, j);
                     if (cJSON_IsString(include_str_item) && include_str_item->valuestring != NULL) {
                         config->entries[i].include[j] = duplicate_string(include_str_item->valuestring);
@@ -78,14 +77,36 @@ i8 parse_json_to_hconfig(const char* json_str, HConfig* config) {
     return 0;
 }
 
+HConfig hconfig_init() {
+    // Read file
+    char* configText = read_file_alloc("hanula.json");
+    if(!configText) {
+        printf("No config file (hanula.json)!");
+        exit(0);
+    }
+
+    // Create an instance of HConfig
+    HConfig config;
+
+    // Parse the JSON string into HConfig
+    if (parse_json_to_hconfig(configText, &config) != 0) {
+        printf("Failed to parse JSON.\n"); // Failed to parsed JSON into HConfig
+        exit(0);
+    }
+
+    free(configText);
+
+    return config;
+}
+
 // Function to free memory allocated for HConfig
 void free_hconfig(HConfig* config) {
     free(config->compiler);
 
-    for (int i = 0; i < config->entries_len; i++) {
+    for (u8 i = 0; i < config->entries_len; i++) {
         free(config->entries[i].headers);
         free(config->entries[i].name);
-        for (int j = 0; j < config->entries_len; j++) {
+        for (u8 j = 0; j < config->entries_len; j++) {
             free(config->entries[i].include[j]);
         }
         free(config->entries[i].include);

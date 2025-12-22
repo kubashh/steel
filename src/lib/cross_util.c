@@ -1,24 +1,41 @@
 #ifndef CROSS_UTIL
 #define CROSS_UTIL
 
+
+//
+// cross include
+//
+
+// just for IDE
+#ifndef CLOCK_MONOTONIC
+#define CLOCK_MONOTONIC 0
+#endif
+
+// All platforms
 #include "stdio.h"
 #include "stdlib.h"
+#include "stdbool.h"
 #include "stdint.h"
 #include "string.h"
-// #include "time.h"
+#include "time.h"
 #include "dirent.h"
 
-//
-// bool
-//
 
-#ifndef true
+#ifdef _WIN32 // Windows
 
-#define bool    _Bool
-#define true    1
-#define false   0
+#include "windows.h" // Sleep
+
+#else // Posix (Linux / Mac)
+
+#include "sys/time.h"
+#include "unistd.h"    // usleep
 
 #endif
+
+// pub
+
+#define pub
+
 
 //
 // int, uint, float
@@ -46,13 +63,14 @@
 #define f128 __f128
 #endif
 
+
 //
 // string
 //
 
 char* duplicate_string(const char* str);
 
-// Utility function to duplicate a string and safely allocate memory
+// Duplicate string and allocate
 char* duplicate_string(const char* str) {
     if (str == NULL) return NULL;
     char* dup_str = malloc(strlen(str) + 1);
@@ -98,25 +116,21 @@ char* duplicate_string(const char* str) {
 // #endif
 // }
 
-// //
-// // sleep
-// //
 
-// void cross_sleep_ms(u32 ms);
+//
+// sleep
+//
 
-// #ifdef _WIN32
-//     #include "windows.h"   // Sleep
-// #else
-//     #include "unistd.h"    // usleep
-// #endif
+void sleep_ms(u32 ms);
 
-// void cross_sleep_ms(u32 ms) {
-// #ifdef _WIN32
-//     Sleep(ms); // ms
-// #else
-//     usleep(ms * 1000); // ms / 1000
-// #endif
-// }
+void sleep_ms(u32 ms) {
+#ifdef _WIN32
+    Sleep(ms); // ms
+#else
+    usleep(ms * 1000); // ms / 1000
+#endif
+}
+
 
 // //
 // // thread
@@ -162,7 +176,7 @@ char* duplicate_string(const char* str) {
 //     return 0;
 // }
 
-// #else // LINUX / POSIX
+// #else // POSIX
 
 // i32 cross_thread_create_basic(cross_thread_t *t, thread_func_t func) {
 //     return pthread_create(t, NULL, func, NULL);
@@ -194,36 +208,122 @@ char* duplicate_string(const char* str) {
 // #endif
 // }
 
-// //
-// // now_s
-// //
 
-// u64 now_s();
+//
+// now_s now_ms now_micro now_nano
+//
 
-// u64 now_s() {
-//     return time(NULL);
-// }
+u64 now_s();
+u32 now_ms();
+u64 now_micro();
+u64 now_nano();
 
-// //
-// // randomize
-// //
+u64 now_s() {
+    return time(NULL);
+}
 
-// void randomize();
-// u32 rand_max(u32 max);
 
-// inline void randomize() {
-//     srand(time(NULL));
-// }
+#ifdef _WIN32
+    u32 now_ms() {
+        FILETIME ft;
+        GetSystemTimeAsFileTime(&ft);
+        u64 time = ((u64)ft.dwLowDateTime | ((u64)ft.dwHighDateTime << 32));
+        return (u32)(time / 10000);
+    }
+#else
+    u32 now_ms() {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+    }
+#endif
 
-// u32 rand_max(u32 max) {
-//     return rand() % max;
-// }
+#ifdef _WIN32
+    // Get current time in microseconds
+    u64 now_micro() {
+        FILETIME ft;
+        GetSystemTimeAsFileTime(&ft);
+        u64 time = ((u64)ft.dwLowDateTime | ((u64)ft.dwHighDateTime << 32));
+        return (u64)(time / 10); // Convert to microseconds
+    }
+
+    // Get current time in nanoseconds
+    u64 now_nano() {
+        LARGE_INTEGER frequency, counter;
+        QueryPerformanceFrequency(&frequency);
+        QueryPerformanceCounter(&counter);
+        return (counter.QuadPart * 1000000000LL) / frequency.QuadPart; // Convert to nanoseconds
+    }
+
+#else
+    // Get current time in microseconds
+    u64 now_micro() {
+        struct timeval tv;
+        gettimeofday(&tv, NULL);
+        return (u64)(tv.tv_sec) * 1000000LL + tv.tv_usec; // Convert to microseconds
+    }
+
+    // Get current time in nanoseconds
+    u64 now_nano() {
+        struct timespec ts;
+        clock_gettime(CLOCK_MONOTONIC, &ts); // CLOCK_MONOTONIC for a steady clock
+        return (u64)(ts.tv_sec) * 1000000000LL + ts.tv_nsec; // Convert to nanoseconds
+    }
+
+#endif
+
+
+//
+// measure_start measure_end
+//
+
+u64 measure_start() {
+    return now_micro();
+}
+
+void measure_end(const char* const label, const u64 start) {
+    const u64 t = now_micro() - start;
+    if(t < 1000) {
+        printf("%s: %3.2fμs\n", label, (f64)t);
+    } else if(t < 1000000) {
+        printf("%s: %3.2fms\n", label, (f64)t / 1000.0);
+    } else {
+        printf("%s: %3.2fs\n", label, (f64)t / 1000000.0);
+    }
+}
+
+void measure_end_buf(char* buf, const u64 start) {
+    const u64 t = now_micro() - start;
+    if(t < 1000) {
+        sprintf(buf, "%ldμs", t);
+    } else if(t < 1000000) {
+        sprintf(buf, "%ldms", t / 1000);
+    } else {
+        sprintf(buf, "%lds", t / 1000000);
+    }
+}
+
+
+//
+// randomize
+//
+
+void randomize();
+u32 rand_max(const u32 max);
+
+inline void randomize() {
+    srand(time(NULL));
+}
+
+u32 rand_max(const u32 max) {
+    return rand() % max;
+}
 
 //
 // Files
 //
 
-char* readFileAlloc(const char* filename) {
+char* read_file_alloc(const char* const filename) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) return NULL;
 
@@ -231,11 +331,6 @@ char* readFileAlloc(const char* filename) {
     fseek(file, 0, SEEK_END);
     u32 fileSize = ftell(file);
     fseek(file, 0, SEEK_SET);  // Move back to the beginning of the file
-
-    char tt[fileSize];
-
-    tt[2] = 'f';
-    tt[1] = 'l';
 
     // Allocate memory for the file content, including space for the null terminator
     char *content = (char *)malloc(fileSize + 1);
@@ -255,7 +350,32 @@ char* readFileAlloc(const char* filename) {
     return content;
 }
 
-u8 writeFile(const char* path, const char* src) {
+u32 read_file_len(const char* const filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) return 0;
+
+    // Move the file pointer to the end of the file to get the size
+    fseek(file, 0, SEEK_END);
+    u32 fileSize = ftell(file) + 1;
+    fclose(file);
+    return fileSize;
+}
+
+bool read_file_buf(char* buf, const u32 fileSize, const char* const filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) return NULL;
+
+    // Read the file contents into the allocated memory
+    u32 bytesRead = fread(buf, 1, fileSize, file);
+    buf[bytesRead] = '\0';  // Null-terminate the string
+
+    // Close the file
+    fclose(file);
+
+    return true;
+}
+
+u8 write_file(const char* const path, const char* const src) {
     FILE* file = fopen(path, "w");
 
     if (file == NULL) return 1;
