@@ -1,46 +1,51 @@
-# Hanula programming language (.ha)
+# Steel programming language (.steel)
 
-For now don't working, wait to 1.0.0 release or try 0.x.x releases
-
-## VSCode setup
-
-Settings > Files > Associations
-add `*.ha` `c`
+For now don't working, wait to 1.0.0 release or try 0.x.x releases.
+Should be low level, simple, fast (like C or better), programmong language and toolchain.
 
 ## Goals
 
-- `C` formatter
-- `C` build kit
-- `C` headers exporter
-- `C` json parser
-- `C` cross utils
-- `C` auto includer
-- `C` printf format only %i %c %s, all %d, #li... auto compile
-
-<!-- ? `C` formatter and build kit?
-
 - easier `C`
 - saver `C`
-- less code than `C`
-- default cross platform `C`
-- fast as `C`
-- no header files
+- less code than `C` (sometimes)
+- default cross platform `C` (std to)
+- fast as `C` (or better)
+- no header files, no imports?
 - pascal (zig, rust) like types `var i: i32 = 3` | `var i = 3`
-- zero cost apstraction
-- OPP support (similar to zig)
+- zero cost apstraction (for loop)
+- OPP/RAII support (similar to zig, destructors?)
 - easy build/config
 - fn optional paramerets
 - automatic code formatting
-- automatic handle of arr.len -->
+- automatic handle of arr.len/str.len
+
+## License: MIT
+
+## Contributing
+
+To contribute open an issue or contact me.
+
+## Idea
+
+- Code (text)
+  - Tokenize
+    - AST
+      - Check syntax
+      - Code formatting (maybe add AST before code formatting, for format (on save))
+    - Join tokens arrays (one value, for build lib/exe) or one file const fileName = struct {};
+      - Push all global values to file top
+        - AST
+          - Code gen
+
+- Don't need headers, can read files form `steel.json`
 
 ## TODO
 
 - read and execute config (v0.1.0)
-- export headers (v0.1.0)
-- auto include (v0.2.0)
-- just work with `C` code builder (v0.2.0)
-- json parser (v0.3.0)
+- compile to `C`
+- auto include (v0.2.0) - no imports
+<!-- - global gitattibutes later, when lang will works -->
 
-### 0.1.0-dev (Pending...)
+### 0.0.1-dev (Pending...)
 
-- in progress
+- `C` HJson (parse, stringify, parse_fast, parse_file, some methods), faster than cJSON -> try benchmarks

@@ -1,0 +1,3 @@
+volatile a = 10;
+volatile b: u64 = 20;
+const volatile c: usize = 10;

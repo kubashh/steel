@@ -1,23 +1,24 @@
+#pragma once // later delete
 #include "../lib/consts.c"
 
 
 typedef struct {
-    char* code;
+    u8* code;
     u32 i;
 } CurrentTokenizer;
 
 CurrentTokenizer curTok;
 
 
-char tok_peek() {
+u8 tok_peek() {
     return curTok.code[curTok.i];
 }
 
-char tok_peek_n(i8 n) {
+u8 tok_peek_n(u8 n) {
     return curTok.code[curTok.i + n];
 }
 
-u8 tok_match(const char * exp) {
+u8 tok_match(const u8* exp) {
     u8 i = 0;
     for(; exp[i] != '\0'; i++) {
         if(exp[i] != tok_peek_n(i)) return false;
@@ -26,13 +27,13 @@ u8 tok_match(const char * exp) {
 }
 
 // 6 bits punctator_i, 2 bits len
-typedef struct {
-    u8 len;
-    char* str;
+typedef struct TokHasPunctator {
+    u32 len;
+    u8* str;
 } TokHasPunctator;
 TokHasPunctator tok_has_punctator() {
-    for(u8 i = 0; i < PUNCTATORS_LEN; i++) {
-        u8 len;
+    for(i32 i = 0; i < PUNCTATORS_LEN; i++) {
+        u32 len;
         if(len = tok_match(punctators[i])) {
             TokHasPunctator thp = {len, punctators[i]};
             // printf("len: %d\n", len);
@@ -46,11 +47,11 @@ TokHasPunctator tok_has_punctator() {
 }
 
 bool tok_symbol_start() {
-    char c = tok_peek();
+    u8 c = tok_peek();
     return 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z' || c == '_';
 }
 
-bool tok_symbol_then(char c) {
+bool tok_symbol_then(u8 c) {
     return 'A' <= c && c <= 'Z' || 'a' <= c && c <= 'z' || '0' <= c && c <= '9' || c == '_';
 }
 
@@ -74,6 +75,7 @@ Token tok_next() {
     // EOF
     if(tok_peek() == '\0') {
         t.type = TEOF;
+        t.value = NULL;
         return t;
     }
 
@@ -84,14 +86,14 @@ Token tok_next() {
     }
 
     // Need buffer
-    char buf[256];
+    u8 buf[256];
 
     // Comments
     if(tok_match("//")) {
         buf[0] = '/';
         buf[1] = '/';
-        u8 i = 2;
-        char c;
+        i32 i = 2;
+        u8 c;
         while((c = tok_peek_n(i)) != '\n' && c != '\0') {
             buf[i] = c;
             i++;
@@ -115,12 +117,12 @@ Token tok_next() {
     // Numbers
     if(strchr(NUMBERS, tok_peek())) {
         buf[0] = tok_peek();
-        u8 i = 1;
+        i32 i = 1;
         if(tok_peek_n(i) == 'x') {
             buf[i] = 'x';
             i++;
         }
-        char c;
+        u8 c;
         while(strchr(NUMBERS, c = tok_peek_n(i))) {
             buf[i] = c;
             i++;
@@ -133,8 +135,8 @@ Token tok_next() {
     }
     // Char as number
     if(tok_peek() == '\'') {
-        u8 i = 0;
-        char c;
+        i32 i = 0;
+        u8 c;
         while(c = tok_peek_n(i) != '\'') {
             buf[i] = c;
             i++;
@@ -151,8 +153,8 @@ Token tok_next() {
     // Strings
     if(tok_peek() == '"') {
         buf[0] = '"';
-        u8 i = 1;
-        char c;
+        i32 i = 1;
+        u8 c;
         while((c = tok_peek_n(i)) != '"' || tok_peek_n(i - 1) == '\\') {
             buf[i] = c;
             i++;
@@ -169,8 +171,8 @@ Token tok_next() {
     // Identifiers/Keywords
     if(tok_symbol_start()) {
         buf[0] = tok_peek();
-        char c;
-        u8 i = 1;
+        u8 c;
+        i32 i = 1;
         while(tok_symbol_then(c = tok_peek_n(i))) {
             buf[i] = c;
             i++;
@@ -179,8 +181,8 @@ Token tok_next() {
         curTok.i += i;
         t.type = TIdentifier;
         t.value = duplicate_string(buf);
-        for(u8 j = 0; j < C_KEYWORDS_LEN; j++) {
-            if(strcmp(cKeywords[j], buf) == 0) {
+        for(i32 j = 0; j < KEYWORDS_LEN; j++) {
+            if(strcmp(KEYWORDS[j], buf) == 0) {
                 t.type = TKeyword;
                 break;
             }
@@ -201,112 +203,36 @@ Token tok_next() {
 }
 
 
-bool tok_len_next() {
-    // EOF
-    if(tok_peek() == '\0') {
-        return false;
-    }
-
-    // Whitespace
-    if(tok_peek() == ' ' || tok_peek() == '\n') {
-        curTok.i++;
-        return tok_len_next();
-    }
-
-    // Comments
-    if(tok_match("//")) {
-        curTok.i += 2;
-        char c;
-        while((c = tok_peek()) != '\n' && c != '\0') {
-            curTok.i++;
-        }
-        return true;
-    }
-
-    // Punctuators
-    TokHasPunctator thp = tok_has_punctator();
-    if(thp.len) {
-        curTok.i += thp.len;
-        return true;
-    }
-
-    // Numbers
-    if(strchr(NUMBERS, tok_peek())) {
-        curTok.i++;
-        if(tok_peek() == 'x') {
-            curTok.i++;
-        }
-        while(strchr(NUMBERS, tok_peek())) {
-            curTok.i++;
-        }
-        return true;
-    }
-    // Char as number
-    if(tok_peek() == '\'') {
-        curTok.i++;
-        while(tok_peek() != '\'') {
-            curTok.i++;
-        }
-        curTok.i++;
-        return true;
-    }
-
-    // Strings
-    if(tok_peek() == '"') {
-        curTok.i++;
-        while(tok_peek() != '"' || tok_peek(-1) == '\\') {
-            curTok.i++;
-        }
-        curTok.i++;
-        return true;
-    }
-
-    // Identifiers/Keywords
-    if(tok_symbol_start()) {
-        curTok.i++;
-        while(tok_symbol_then(tok_peek())) {
-            curTok.i++;
-        }
-        return true;
-    }
-
-    return false;
-}
-
-
-u32 tok_len() {
-    u32 len = 0;
-    curTok.i = 0;
-
-    while(tok_len_next()) {
-        len++;
-    }
-    return len;
-}
-
-
 // tokenize from file path 
-FileTokens tokenize_init(char* path) {
+FileTokens tokenize_file(u8* path) {
     // Read File
-    char* file = read_file_alloc(path);
+    u8* file = read_file_alloc(path);
+    if(!file) {
+        printf("File '%s' do not exists!\n", path); // TODO red color
+        exit(1);
+    }
 
     printf("Tokenizing %s\n", path);
 
     curTok.code = file;
 
-    // u64 start = measure_start();
+    // u64 start = now_micro();
 
-    FileTokens tslice = {.len = tok_len() + 1, .path = path};
-    tslice.tokens = malloc(tslice.len * sizeof(Token));
+    u32 tslice_tok_alloc_size = 64 * 1024; // 64KB
+    FileTokens tslice = { .path = path };
+    tslice.tokens = malloc(tslice_tok_alloc_size * sizeof(Token));
 
     curTok.i = 0;
-    Token tok;
     u32 i = 0;
+    Token tok;
     for(; (tok = tok_next()).type != TEOF; i++) {
         if(tok.type == TError) {
             printf("Error: Invalid token at %s %d:%d\n", path, tok.line, tok.line_i);
             printf("%s\n", tok.value);
             exit(0);
+        } else if(i >= tslice_tok_alloc_size) {
+            tslice_tok_alloc_size <<= 1;
+            tslice.tokens = realloc(tslice.tokens, tslice_tok_alloc_size * sizeof(Token));
         }
 
         // printf("%s %s %d:%d\n", tok.value, path, tok.line, tok.line_i);
@@ -314,9 +240,11 @@ FileTokens tokenize_init(char* path) {
         tslice.tokens[i] = tok;
     }
 
+    tslice.len = i; // for TEOF
     tslice.tokens[tslice.len - 1] = tok; // TEOF
+    tslice.tokens = realloc(tslice.tokens, tslice.len * sizeof(Token)); // fix tslilce size
 
-    // measure_end("Tokenize", start);
+    // measure_end_print("Tokenize", start);
 
     // Free
     free(file);

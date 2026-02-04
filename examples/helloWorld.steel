@@ -1,0 +1,5 @@
+pub fn main() void {
+    // Hello world program
+    print("Hello World! {}\n", 123);
+    i32 a = add(1, 2);
+}

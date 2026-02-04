@@ -1,0 +1,17 @@
+{
+  "compiler": "gcc",
+  "version": "0.0.2-dev",
+  "license": "MIT",
+  "entries": [
+    {
+      "name": "steel",
+      "headers": "./dist/headers.h",
+      "exe": "./dist/steel",
+      "lib": "./dist/steel.c",
+      "include": [
+        "./examples/helloWorld.steel",
+        "./examples/helloWorldUtil.steel"
+      ]
+    }
+  ]
+}

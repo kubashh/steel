@@ -1,5 +1,5 @@
 #include "../lib/consts.c"
 
-void codeGenerator() {
+void codegen() {
 
 }

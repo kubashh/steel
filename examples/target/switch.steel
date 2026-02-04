@@ -1,0 +1,53 @@
+fn main() void {
+    // number types
+    var a = 10;
+    switch(a) {
+        0...5 => {
+            // ...
+        },
+        6, 8...10 => {
+            // ...
+        },
+        else => {
+            // ..
+        }
+    }
+
+    // types
+    var b = i32;
+    switch(b) {
+        i32, u32, f32 => {},
+        i64 => {},
+        else => {}
+    }
+
+    // enums
+    var c = .linux;
+    switch(c) {
+        .windows => {
+            // windows
+        },
+        .linux, .macos => {
+            // posix
+        },
+        else => {
+            // error!
+        }
+    }
+
+    // strings
+    var d = "str";
+    switch(c) {
+        "str" => {},
+        "ab", "abc" => {},
+        else => {}
+    }
+
+    // error?
+    var e = error.duck
+    switch(a) {
+        error.duck => {},
+        error.IO => {},
+        else => {}
+    }
+}

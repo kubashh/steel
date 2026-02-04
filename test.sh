@@ -1,8 +1,14 @@
 # clear
 clear
 
+# Setup
+mkdir -p ./dist
+
 # Build
-gcc src/hanula.c -odist/hanula
+gcc src/steel.c -odist/steel
 
 # Run
-./dist/hanula $1 $2 $3 $4
+./dist/steel $1 $2 $3 $4
+
+# Cleanup
+rm -rf ./dist
