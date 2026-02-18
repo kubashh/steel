@@ -296,7 +296,7 @@ void timer_end() {
     timer_start_time = now_nanoseconds() - timer_start_time;
     u8 buf[64];
     strcpy(buf, timer_label);
-    isize buf_len = strlen(buf);
+    usize buf_len = strlen(buf);
     buf[buf_len++] = ':';
     buf[buf_len++] = ' ';
     fmt_nano_buf(&buf[buf_len], timer_start_time);
