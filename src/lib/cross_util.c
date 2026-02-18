@@ -1,17 +1,5 @@
 #pragma once
 
-// TODO move ALL includes on file top
-
-
-//
-// cross include
-//
-
-// just for IDE
-#ifndef CLOCK_MONOTONIC_RAW
-#define CLOCK_MONOTONIC_RAW 4
-#endif
-
 // All platforms
 #include "stdio.h"
 #include "stdlib.h"
@@ -19,42 +7,62 @@
 #include "stdint.h"
 #include "string.h"
 #include "time.h"
-#include "dirent.h"
+// #include "dirent.h" // for read dir
 
 
+// Platform specific libs
 #ifdef _WIN32 // Windows
 
-#include "windows.h" // Sleep
+#include "windows.h"    // Sleep
+                        // HANDLE, DWORD, CreateThread, WaitForSingleObject, CloseHandle
+#include "conio.h"  // _getch
+
+typedef HANDLE cross_thread_t;
+typedef DWORD thread_return_t;
 
 #else // Posix (Linux / Mac)
 
 #include "sys/time.h"
-#include "unistd.h"    // usleep
+#include "unistd.h"     // usleep
+                        // tcgetattr, tcsetattr, read, tcsetattr
+#include "termios.h" // termios
+#include "pthread.h"    // pthread_t, pthread_create, pthread_join
+
+typedef pthread_t cross_thread_t;
+typedef void* thread_return_t;
 
 #endif
 
+typedef thread_return_t (*thread_func_t)(void *);
 
-#define pub // for lib export
 
 
-//
-// int, uint, float
-//
+// just for IDE
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW 4
+#endif
 
-#define u8 unsigned char
-#define u16 uint16_t
-#define u32 uint32_t
-#define u64 uint64_t
-#define i8 char
-#define i16 int16_t
-#define i32 int32_t
-#define i64 int64_t
+// #define pub // for lib export
 
-#define usize size_t
-#define isize ssize_t
 
-#define f32 float
-#define f64 double
+// u8, u16, u32, u64, usize
+// i8, i16, i32, i64, isize
+// f32, f64
+
+typedef unsigned char u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+typedef char i8;
+typedef int16_t i16;
+typedef int32_t i32;
+typedef int64_t i64;
+
+typedef size_t usize;
+typedef ssize_t isize;
+
+typedef float f32;
+typedef double f64;
 
 
 //
@@ -63,7 +71,7 @@
 
 u8* duplicate_string(const u8* str);
 
-// Duplicate string and allocate
+// Duplicate and allocate string
 u8* duplicate_string(const u8* str) {
     if (str == NULL) return NULL;
     u8* dup_str = malloc(strlen(str) + 1);
@@ -77,17 +85,10 @@ u8* duplicate_string(const u8* str) {
 // getchar
 //
 
-#ifdef _WIN32
-    #include "conio.h"  // _getch
-#else
-    #include "termios.h" // termios
-    #include "unistd.h" // tcgetattr, tcsetattr, read, tcsetattr
-#endif
-
-// Cross-platform function to get a single character
+// Reads a single key without waiting for Enter
 u8 cross_getchar() {
 #ifdef _WIN32
-    return _getch();  // Reads a single key without waiting for Enter
+    return _getch();
 #else
     struct termios oldt, newt;
     u8 ch;
@@ -114,9 +115,9 @@ u8 cross_getchar() {
 // sleep
 //
 
-void sleep_ms(u32 ms);
+void sleep_ms(u64 ms);
 
-void sleep_ms(u32 ms) {
+void sleep_ms(u64 ms) {
 #ifdef _WIN32
     Sleep(ms); // ms
 #else
@@ -128,18 +129,6 @@ void sleep_ms(u32 ms) {
 //
 // thread
 //
-
-#ifdef _WIN32
-    #include "windows.h" // HANDLE, DWORD, CreateThread, WaitForSingleObject, CloseHandle
-    typedef HANDLE cross_thread_t;
-    typedef DWORD thread_return_t;
-#else
-    #include "pthread.h" // pthread_t, pthread_create, pthread_join
-    typedef pthread_t cross_thread_t;
-    typedef void* thread_return_t;
-#endif
-
-typedef thread_return_t (*thread_func_t)(void *);
 
 u32 cross_thread_create_basic(cross_thread_t *t, thread_func_t func);
 cross_thread_t cross_thread_create(thread_func_t func);
@@ -203,20 +192,20 @@ void cross_clear() {
 
 
 //
-// time: now_s now_ms now_micro now_nano
+// time: now_seconds now_milliseconds now_microseconds now_nanoseconds
 //
 
-u32 now_s();
-u32 now_ms();
-u64 now_micro();
-u64 performance_now();
+u32 now_seconds();
+u64 now_milliseconds();
+u64 now_microseconds();
+u64 now_nanoseconds();
 
-u32 now_s() {
+u32 now_seconds() {
     return time(NULL);
 }
 
 
-u32 now_ms() {
+u64 now_milliseconds() {
 #ifdef _WIN32
 
     FILETIME ft;
@@ -237,7 +226,7 @@ u32 now_ms() {
 #ifdef _WIN32
 
 // Get current time in microseconds
-u64 now_micro() {
+u64 now_microseconds() {
     FILETIME ft;
     GetSystemTimeAsFileTime(&ft);
     u64 time = ((u64)ft.dwLowDateTime | ((u64)ft.dwHighDateTime << 32));
@@ -245,7 +234,7 @@ u64 now_micro() {
 }
 
 // Get current time in nanoseconds
-u64 performance_now() {
+u64 now_nanoseconds() {
     LARGE_INTEGER frequency, counter;
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&counter);
@@ -255,14 +244,14 @@ u64 performance_now() {
 #else
 
 // Get current time in microseconds
-u64 now_micro() {
+u64 now_microseconds() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return (u64)(tv.tv_sec) * 1000000LL + tv.tv_usec; // Convert to microseconds
 }
 
-// Get current time in nanoseconds
-u64 performance_now() {
+// Get monotonic time in nanoseconds
+u64 now_nanoseconds() {
     struct timespec ts;
     clock_gettime(CLOCK_MONOTONIC_RAW, &ts); // CLOCK_MONOTONIC for a steady clock
     return (u64)(ts.tv_sec) * 1000000000LL + ts.tv_nsec; // Convert to nanoseconds
@@ -299,15 +288,15 @@ u64 timer_start_time;
 // like JS console.time
 void timer_start(u8* label) {
     timer_label = label;
-    timer_start_time = performance_now();
+    timer_start_time = now_nanoseconds();
 }
 
 // like JS console.timeEnd
 void timer_end() {
-    timer_start_time = performance_now() - timer_start_time;
+    timer_start_time = now_nanoseconds() - timer_start_time;
     u8 buf[64];
     strcpy(buf, timer_label);
-    i32 buf_len = strlen(buf);
+    isize buf_len = strlen(buf);
     buf[buf_len++] = ':';
     buf[buf_len++] = ' ';
     fmt_nano_buf(&buf[buf_len], timer_start_time);
@@ -319,15 +308,10 @@ void timer_end() {
 // randomize
 //
 
-inline void randomize();
-u32 rand_max(const u32 max);
+void randomize();
 
 void randomize() {
     srand(time(NULL));
-}
-
-u32 rand_max(const u32 max) {
-    return rand() % max;
 }
 
 //
