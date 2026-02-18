@@ -1,0 +1,31 @@
+struct Point {
+    x: f64;
+    y: f64
+};
+
+var a: Mutex<Point> = .{
+    x = 10,
+    y = 20
+};
+
+fn somePointAdd() void {
+    v.lock(); // or var mut = v.lock(); then drop? or auto unlocking???
+    v.x *= 3;
+    v.y += 10;
+    // drop for v.unlock(); optional - auto drop in end of scope
+}
+
+// remember deadlocks when implementing. maybe do not allow to 2 locks in same scope??
+
+fn main() void {
+    var t1 = Thread.init(somePointAdd);
+    var t2 = Thread.init(somePointAdd);
+
+    t1.start();
+    t2.start();
+
+    t1.join();
+    t2.join();
+
+    print("Done!\n");
+}

@@ -1,0 +1,37 @@
+fn main() void {
+    // numbers (maybe number type?)
+    // ints
+    var a: i8 = 0;
+    var b: i16 = 0;
+    var c: i32 = 0;
+    var d: i64 = 0;
+    var e: isize = 0;
+    // uints
+    var f: u8 = 0;
+    var g: u16 = 0;
+    var h: i32 = 0;
+    var i: i64 = 0;
+    var j: usize = 0;
+    // floats
+    var k: f32 = 0;
+    var l: f64 = 0;
+
+    // structs
+    var obj = .{
+        x: i32 = 10,
+        y: f32 = 3.14
+    };
+
+    // arrays
+    var arr: u8[] = .{ 'H', 'e', 'l', 'l', 'o' };
+    var arr2: u8[6] = "Hello";
+
+    // pointers
+    var ptr: u8* = arr;
+
+    // enums
+    var enu = .{ .file, .err, .sth };
+
+    // unions
+    var un = union { i32, f64 };
+}

@@ -1,6 +1,6 @@
-#include "./lib/consts.c"
-#include "./parser/tokenizer.c"
-#include "./parser/ast.c"
+#include "lib/lib.c"
+#include "lexer/tokenizer.c"
+#include "parser/ast.c"
 
 void compiler(ConfEntry entry) {
     // Print info
@@ -17,15 +17,17 @@ void compiler(ConfEntry entry) {
     // GenAst
     ASTNode* programs[entry.include_len];
     for(i32 i = 0; i < entry.include_len; i++) {
-        programs[i] = AST_init(entry.include[i]);
+        const FileTokens tokens = tokenize_file(entry.include[i]);
+        programs[i] = AST_init(tokens);
+        tokenize_deinit(tokens);
     }
 
     // // Compile
     // // get tokens
-    // FileTokens filesTokens[entry.include_len];
+    // FileTokens files_tokens[entry.include_len];
     // for(i32 i = 0; i < entry.include_len; i++) {
     //     // Tokenize
-    //     filesTokens[i] = tokenize_file(entry.include[i]);
+    //     files_tokens[i] = tokenize_file(entry.include[i]);
     //     printf("%s\n\n", entry.include[i]);
     // }
 
@@ -34,9 +36,9 @@ void compiler(ConfEntry entry) {
     // i32 buf_i = 0;
     // for(i32 i = 0; i < entry.include_len; i++) {
     //     // Tokenize
-    //     for(i32 j = 0; j < filesTokens[i].len; j++) {
-    //         buf_i += sprintf(&buf[buf_i], "%s", filesTokens[i].tokens[j].value);
-    //         printf("token: %10s type: %s\n", filesTokens[i].tokens[j].value, TYPES_NAMES[filesTokens[i].tokens[j].type]);
+    //     for(i32 j = 0; j < files_tokens[i].len; j++) {
+    //         buf_i += sprintf(&buf[buf_i], "%s", files_tokens[i].tokens[j].value);
+    //         printf("token: %10s type: %s\n", files_tokens[i].tokens[j].value, TYPES_NAMES[files_tokens[i].tokens[j].type]);
     //     }
     // }
     // buf[buf_i] = '\0';
@@ -44,14 +46,14 @@ void compiler(ConfEntry entry) {
 
     // u32 bundled_len = 0;
     // for(i32 i = 0; i < entry.include_len; i++) {
-    //     bundled_len += filesTokens->len;
+    //     bundled_len += files_tokens->len;
     // }
 
-    // Token bundlendTokens[bundled_len];
+    // Token bundlend_tokens[bundled_len];
     // // u32 
     // for(i32 i = 0; i < entry.include_len; i++) {
-    //     for(i32 j = 0; j < filesTokens[i].len; i++) {
-    //         // bundlendTokens[i] = 
+    //     for(i32 j = 0; j < files_tokens[i].len; i++) {
+    //         // bundlend_tokens[i] = 
     //     }
     // }
 

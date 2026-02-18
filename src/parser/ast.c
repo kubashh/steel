@@ -1,5 +1,4 @@
-#include "../lib/consts.c"
-#include "./tokenizer.c"
+#include "../lib/lib.c"
 
 // Example
 
@@ -20,9 +19,13 @@
 //                      ├─ arg1: AST_LITERAL_STR ("a: {}\n")
 //                      └─ arg2: AST_IDENT ("a")
 
+typedef struct ASTNode ASTNode;
+
 
 enum ASTNodeType {
     AST_PROGRAM,
+    AST_FILE,
+    AST_BINARY,
     AST_DECL_FN,
     AST_DECL_VAR,
     AST_BLOCK,
@@ -31,6 +34,8 @@ enum ASTNodeType {
 };
 
 typedef struct ASTBlock {
+    ASTNode** block;
+    u32 len;
 } ASTBlock;
 
 typedef struct ASTProgram {
@@ -40,32 +45,50 @@ typedef struct ASTProgram {
 typedef struct ASTNode {
     u32 type;
 
-    // union {
-    //     // ASTBlock
-    //     struct ASTProgram {
-    //         ASTBlock block;
-    //     };
-    // };
+    union {
+        // ASTBlock
+        struct {
+            ASTNode** block;
+            u32 block_len;
+        };
+    };
 } ASTNode;
 
-// will do AST + Tokenization
-ASTNode* AST_init(u8* path) {
-    // Tokenize
-    FileTokens tokens = tokenize_file(path);
-
-    // Print tokens
-    u8 buf[64 * 1024];
-    i32 buf_i = 0;
-    for(i32 j = 0; j < tokens.len; j++) {
-        buf_i += sprintf(&buf[buf_i], "%s", tokens.tokens[j].value);
-        printf("token: %10s type: %s\n", tokens.tokens[j].value, TYPES_NAMES[tokens.tokens[j].type]);
+// to opt
+void AST_add(ASTNode* el, ASTNode* new) {
+    if(el->block == NULL) {
+        el->block = malloc(sizeof(ASTNode));
+        el->block_len = 1;
+    } else {
+        el->block_len++;
+        el->block = realloc(el->block, el->block_len);
     }
-    buf[buf_i] = '\0';
-    puts(buf);
+    el->block[el->block_len - 1] = new;
+}
+
+void AST_print(ASTNode* program) {
+    // TODO printf();
+}
+
+// will do AST + Tokenization
+ASTNode* AST_init(FileTokens tokens) {
+    printf("Parsing %s\n", tokens.path);
+    // // Print tokens
+    // // u8 buf[64 * 1024];
+    // // i32 buf_i = 0;
+    // for(i32 j = 0; j < tokens.len - 1; j++) {
+    //     // buf_i += sprintf(&buf[buf_i], "%s ", tokens.tokens[j].value);
+    //     printf("%10s:   %s\n", TYPES_NAMES[tokens.tokens[j].type], tokens.tokens[j].value);
+    // }
+    // // buf[buf_i] = '\0';
+    // // puts(buf);
+
+    ASTNode* program = malloc(sizeof(ASTNode));
+    program->type = AST_FILE;
+    // program->block = malloc()
 
 
     // Free/ need fix sth see all malloc and free
-    tokenize_deinit(tokens);
 }
 
 void AST_deinit(ASTNode* program) {

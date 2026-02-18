@@ -1,5 +1,4 @@
-#include "./lib/consts.c"
+#include "lib/lib.c"
 
 void format(FileTokens ftok) {
-    // TODO ...
 }

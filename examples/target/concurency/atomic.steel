@@ -1,0 +1,19 @@
+atomic a = 10; // i32
+
+fn increment() void {
+    a++;    // always atomic operations
+            // if can't be atomic throw comptime error
+}
+
+fn main(): void {
+    var t1 = Thread.init(increment);
+    var t2 = Thread.init(increment);
+
+    t1.start();
+    t2.start();
+
+    t1.join();
+    t2.join();
+
+    print("Done!\n");
+}

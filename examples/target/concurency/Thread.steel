@@ -1,0 +1,16 @@
+fn doSth() void {
+    print("Hello from thread!\n");
+}
+
+fn main(): void {
+    var t1 = Thread.init(doSth);
+    var t2 = Thread.init(doSth);
+
+    t1.start();
+    t2.start();
+
+    t1.join();
+    t2.join();
+
+    print("Done!\n");
+}

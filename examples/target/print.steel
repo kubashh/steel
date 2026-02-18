@@ -1,17 +1,17 @@
 fn main() void {
     // values
-    const a = 10;   // i32
-    var b: u32 = 20;     // u32
-    var c: i8 = -1;     // i8
+    const a = 10;               // i32
+    var b: u32 = 20;            // u32
+    var c: i8 = -1;             // i8
     var d: i64 = -2300000000;   // i64
-    var e: f32 = 10.0;  // f32
-    const f = -3.14;    // f64
-    const ch = 'a';     // u8
-    const str = "World!";     // u8*
+    var e: f32 = 10.0;          // f32
+    const f = -3.14;            // f64
+    const ch = 'a';             // u8
+    const str = "World!";       // u8*
 
     // int
     print("\i \i \i \i \n", a, b, c, d);    // 10 20 -1 -2300000000
-    print("\i \n", 1);    // 1
+    print("\i \n", 1);                      // 1
 
     // char
     print("\c is \i \n", ch, ch);   // a is 97

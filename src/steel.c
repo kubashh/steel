@@ -1,6 +1,5 @@
-#include "./lib/consts.c"
-#include "./compiler.c"
-#include "./lib/util.c"
+#include "lib/lib.c"
+#include "compiler.c"
 
 
 void compileUtil(ConfEntry entry, u8* ccomp) {
@@ -22,9 +21,9 @@ void compileUtil(ConfEntry entry, u8* ccomp) {
 void handle_build(u8 args_len, u8 *args[]) {
     // printf("Building project...\n");
 
-    // u64 start = now_micro();
+    // timer_start("Config");
     HConfig config = hconfig_init();
-    // measure_end("Config", start);
+    // timer_end();
 
     // printf("Compiler: %s\n", config.compiler);
 

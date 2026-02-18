@@ -8,8 +8,8 @@
 //
 
 // just for IDE
-#ifndef CLOCK_MONOTONIC
-#define CLOCK_MONOTONIC 0
+#ifndef CLOCK_MONOTONIC_RAW
+#define CLOCK_MONOTONIC_RAW 4
 #endif
 
 // All platforms
@@ -209,7 +209,7 @@ void cross_clear() {
 u32 now_s();
 u32 now_ms();
 u64 now_micro();
-u64 now_nano();
+u64 performance_now();
 
 u32 now_s() {
     return time(NULL);
@@ -245,7 +245,7 @@ u64 now_micro() {
 }
 
 // Get current time in nanoseconds
-u64 now_nano() {
+u64 performance_now() {
     LARGE_INTEGER frequency, counter;
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&counter);
@@ -262,9 +262,9 @@ u64 now_micro() {
 }
 
 // Get current time in nanoseconds
-u64 now_nano() {
+u64 performance_now() {
     struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC, &ts); // CLOCK_MONOTONIC for a steady clock
+    clock_gettime(CLOCK_MONOTONIC_RAW, &ts); // CLOCK_MONOTONIC for a steady clock
     return (u64)(ts.tv_sec) * 1000000000LL + ts.tv_nsec; // Convert to nanoseconds
 }
 
@@ -272,50 +272,46 @@ u64 now_nano() {
 
 
 //
-// measure_start measure_end
+// measure_end
 //
 
-inline u64 measure_end(const u64 start);
-inline void measure_end_print(const u8* const label, const u64 start);
-inline u8* format_time(u8* buf, const u64 micro);
-inline void measure_end_buf(u8* buf, const u64 start);
+int fmt_nano_buf(u8* buf, u64 nano);
 
-
-u64 measure_end(const u64 start_micro) {
-    return now_micro() - start_micro;
-}
-
-void measure_end_print(const u8* const label, u64 micro) {
-    micro = now_micro() - micro;
-    if(micro < 1000) {
-        printf("%s: %3.2fμs\n", label, (f64)micro);
-    } else if(micro < 1000000) {
-        printf("%s: %3.2fms\n", label, (f64)micro / 1000.0);
-    } else if(micro < 1000000000) {
-        printf("%s: %3.2fs\n", label, (f64)micro / 1000000.0);
-    } else if(micro < 60LL * 1000000000LL) {
-        printf("%s: %3.2fs\n", label, (f64)micro / (60.0 * 1000000.0));
+int fmt_nano_buf(u8* buf, u64 nano) {
+    if(nano < 1000) {
+        return sprintf(buf, "%3.2fns\n", (f64)nano);
+    } else if(nano < 1000000) {
+        return sprintf(buf, "%3.2fμs\n", (f64)nano / 1000.0);
+    } else if(nano < 1000000000) {
+        return sprintf(buf, "%3.2fms\n", (f64)nano / 1000000.0);
+    } else if(nano < 1000000000000LL) {
+        return sprintf(buf, "%3.2fs\n", (f64)nano / 1000000000.0);
+    } else if(nano < 60LL * 1000000000000LL) {
+        return sprintf(buf, "%3.2fm\n", (f64)nano / (60.0 * 1000000000.0));
     } else {
-        printf("%s: %3.2fs\n", label, (f64)micro / (360.0 * 1000000.0));
+        return sprintf(buf, "%3.2fh\n", (f64)nano / (360.0 * 1000000000.0));
     }
 }
 
-u8* format_time(u8* buf, const u64 micro) {
-    if(micro < 1000) {
-        sprintf(buf, "%ldμs", micro);
-    } else if(micro < 1000000) {
-        sprintf(buf, "%.3fms", micro / 1000.0);
-    } else if(micro < 1000000000) {
-        sprintf(buf, "%.3fs", micro / 1000000.0);
-    } else if(micro < 60LL * 1000000000LL) {
-        sprintf(buf, "%.3fm", micro / (60.0 * 1000000.0));
-    } else {
-        sprintf(buf, "%.3fh", micro / (360.0 * 1000000.0));
-    }
+u8* timer_label;
+u64 timer_start_time;
+
+// like JS console.time
+void timer_start(u8* label) {
+    timer_label = label;
+    timer_start_time = performance_now();
 }
 
-void measure_end_buf(u8* buf, const u64 start) {
-    format_time(buf, now_micro() - start);
+// like JS console.timeEnd
+void timer_end() {
+    timer_start_time = performance_now() - timer_start_time;
+    u8 buf[64];
+    strcpy(buf, timer_label);
+    i32 buf_len = strlen(buf);
+    buf[buf_len++] = ':';
+    buf[buf_len++] = ' ';
+    fmt_nano_buf(&buf[buf_len], timer_start_time);
+    puts(buf);
 }
 
 

@@ -1,11 +1,11 @@
-#pragma once
-
-#include "../../lib/libsteel.c"
+#include "cross_util.c"
+#include "hjson.c"
 
 
 #define STEEL_VERSION "0.0.1"
 
 #define TMP_OUTPATH "./tmp.c"
+#define ERR_RED RED "error" RESET
 
 
 // Colors
@@ -43,7 +43,7 @@ const u8* TYPES_NAMES[] = {
     "Keyword",
     "Comment",
     "EOF",
-    "Error 7"
+    "Error"
 };
 
 
@@ -59,17 +59,16 @@ u8 *punctators[] = { // Sorted by len
     "||",   // Logical OR
     "<<",   // Left Shift (Bitwise)
     ">>",   // Right Shift (Bitwise)
-    "++",   // Increment
-    "--",   // Decrement
+    // "++",   // Increment
+    // "--",   // Decrement
     "+=",   // Addition Assignment
     "-=",   // Subtraction Assignment
     "*=",   // Multiplication Assignment
     "/=",   // Division Assignment
-    "%=",   // Modulus Assignment
-    "&=",   // Bitwise AND Assignment
-    "|=",   // Bitwise OR Assignment
-    "^=",   // Bitwise XOR Assignment
-    // "->",   // Pointer to Member Access
+    // "%=",   // Modulus Assignment
+    // "&=",   // Bitwise AND Assignment
+    // "|=",   // Bitwise OR Assignment
+    // "^=",   // Bitwise XOR Assignment
     "<",    // Less Than
     ">",    // Greater Than
     ";",    // Semicolon
@@ -107,10 +106,11 @@ u8 *KEYWORDS[] = {
     "fn",
     "var",
     "const",
+    "atomic", // always atomic
     "pub",
     "export"
     // "volatile", // ?? like rust as function
-    // "extern", // ?? steel.json
+    "extern",
     // "restrict", // ?? good compiler analysis
     // "type", // ??
 
@@ -139,12 +139,9 @@ u8 *KEYWORDS[] = {
     "for", // ?? like zig
     "break", // labeled
     "continue", // labeled
-    // "case", // like zig
     "else", // if/switch
     "switch",
-    // "default // else like zig
     "do", // ??
-    // "goto", // to break/continue labeled
     "return",
 
     // Other

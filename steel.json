@@ -8,10 +8,7 @@
       "headers": "./dist/headers.h",
       "exe": "./dist/steel",
       "lib": "./dist/steel.c",
-      "include": [
-        "./examples/helloWorld.steel",
-        "./examples/helloWorldUtil.steel"
-      ]
+      "include": ["./examples/helloWorld.steel"]
     }
   ]
 }

@@ -1,4 +1,4 @@
-#include "../lib/consts.c"
+#include "../lib/lib.c"
 
 // void check(FileTokens ftokens) { // AST
 //     Token tok;

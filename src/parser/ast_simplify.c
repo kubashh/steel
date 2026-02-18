@@ -1,4 +1,4 @@
 #include "../lib/lib.c"
 
-void codegen() {
+void ast_simplify() {
 }

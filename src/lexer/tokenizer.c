@@ -1,9 +1,10 @@
-#pragma once // later delete
-#include "../lib/consts.c"
+#pragma once
+#include "../lib/lib.c"
 
 
-typedef struct {
+typedef struct CurrentTokenizer {
     u8* code;
+    u8* path;
     u32 i;
 } CurrentTokenizer;
 
@@ -191,14 +192,18 @@ Token tok_next() {
     }
 
     // Error
-    strcpy(buf, "Unhandled char c\n");
 
-    buf[15] = tok_peek();
 
-    // Error (Token) - unhandled expression
+    sprintf(buf, "%s %d:%d " ERR_RED ": Invalid token '%c'\n",
+        curTok.path, t.line, t.line_i, tok_peek());
 
-    t.value = duplicate_string(buf);
+    error_push(duplicate_string(buf));
+
     t.type = TError;
+    t.value = malloc(2);
+    t.value[0] = tok_peek();
+    t.value[1] = '\0';
+    curTok.i++;
     return t;
 }
 
@@ -214,23 +219,22 @@ FileTokens tokenize_file(u8* path) {
 
     printf("Tokenizing %s\n", path);
 
-    curTok.code = file;
+    curTok = (CurrentTokenizer){
+        .code = file,
+        .path = path,
+        .i = 0
+    };
 
-    // u64 start = now_micro();
+    // timer_start("Tokenize");
 
     u32 tslice_tok_alloc_size = 64 * 1024; // 64KB
     FileTokens tslice = { .path = path };
     tslice.tokens = malloc(tslice_tok_alloc_size * sizeof(Token));
 
-    curTok.i = 0;
     u32 i = 0;
     Token tok;
-    for(; (tok = tok_next()).type != TEOF; i++) {
-        if(tok.type == TError) {
-            printf("Error: Invalid token at %s %d:%d\n", path, tok.line, tok.line_i);
-            printf("%s\n", tok.value);
-            exit(0);
-        } else if(i >= tslice_tok_alloc_size) {
+    while((tok = tok_next()).type != TEOF) {
+        if(i >= tslice_tok_alloc_size) {
             tslice_tok_alloc_size <<= 1;
             tslice.tokens = realloc(tslice.tokens, tslice_tok_alloc_size * sizeof(Token));
         }
@@ -238,13 +242,18 @@ FileTokens tokenize_file(u8* path) {
         // printf("%s %s %d:%d\n", tok.value, path, tok.line, tok.line_i);
 
         tslice.tokens[i] = tok;
+        i++;
     }
 
-    tslice.len = i; // for TEOF
+    if(errors) {
+        error_print_exit();
+    }
+
+    tslice.len = i + 1; // for TEOF
     tslice.tokens[tslice.len - 1] = tok; // TEOF
     tslice.tokens = realloc(tslice.tokens, tslice.len * sizeof(Token)); // fix tslilce size
 
-    // measure_end_print("Tokenize", start);
+    // timer_end();
 
     // Free
     free(file);
