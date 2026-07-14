@@ -5,27 +5,28 @@ Should be low level, simple, fast (like C or better), programmong language and t
 
 ## Goals
 
-- easier `C`
-- saver `C`
-- less code than `C` (sometimes)
-- default cross platform `C` (std to)
-- fast as `C` (or better)
-- no header files, no imports?
-- pascal (zig, rust) like types `var i: i32 = 3` | `var i = 3`
-- zero cost apstraction (for loop)
-- OPP/RAII support (similar to zig, destructors?)
-- easy build/config
-- fn optional paramerets
-- automatic code formatting
-- automatic handle of arr.len/str.len
+- Enforce a highly organized and modular code structure, similar to Java.
+- Keep the language and syntax simple and minimalistic, inspired by Zig.
+- Provide safety features such as RAII, optionals, and memory safety.
+- Maintain strict typing and strong compile-time checks.
+- Default to cross-platform C compatibility using only the standard library.
+- Achieve performance equal to C.
+- Minimize boilerplate: never use header files and manual imports where possible.
+- Use expressive, Pascal/Rust/Zig-like type syntax: e.g., var i: i32 = 3 or var i = 3.
+- Support zero-cost abstractions for common patterns (e.g., loops).
+- Include object-oriented and RAII-style support, including destructors, similar to Zig.
+- Simplify build and configuration processes.
+- Allow optional function parameters.
+- Provide automatic code formatting.
+- Automatically handle array and string lengths (arr.len, str.len).
 
-## License: MIT
+## License MIT
 
 ## Contributing
 
 To contribute open an issue or contact me.
 
-## Idea
+## Compiler steps
 
 - Code (text)
   - Tokenize
@@ -44,7 +45,6 @@ To contribute open an issue or contact me.
 - read and execute config (v0.1.0)
 - compile to `C`
 - auto include (v0.2.0) - no imports
-<!-- - global gitattibutes later, when lang will works -->
 
 ### 0.0.1-dev (Pending...)
 

@@ -1,14 +1,14 @@
 # clear
 clear
 
-# Setup
+# setup
 mkdir -p ./dist
 
-# Build
-gcc src/steel.c -odist/steel
+# build
+rune src/steel.c 
 
-# Run
+# run
 ./dist/steel $1 $2 $3 $4
 
-# Cleanup
+# cleanup
 rm -rf ./dist
