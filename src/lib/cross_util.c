@@ -1,21 +1,22 @@
 #pragma once
 
 // All platforms
-#include "stdio.h"
-#include "stdlib.h"
+#include "errno.h"
 #include "stdbool.h"
 #include "stdint.h"
+#include "stdio.h"
+#include "stdlib.h"
 #include "string.h"
+#include "sys/stat.h"
 #include "time.h"
 // #include "dirent.h" // for read dir
-
 
 // Platform specific libs
 #ifdef _WIN32 // Windows
 
-#include "windows.h"    // Sleep
-                        // HANDLE, DWORD, CreateThread, WaitForSingleObject, CloseHandle
-#include "conio.h"  // _getch
+#include "windows.h" // Sleep
+// HANDLE, DWORD, CreateThread, WaitForSingleObject, CloseHandle
+#include "conio.h" // _getch
 
 typedef HANDLE cross_thread_t;
 typedef DWORD thread_return_t;
@@ -23,19 +24,17 @@ typedef DWORD thread_return_t;
 #else // Posix (Linux / Mac)
 
 #include "sys/time.h"
-#include "unistd.h"     // usleep
-                        // tcgetattr, tcsetattr, read, tcsetattr
+#include "unistd.h"  // usleep
+                     // tcgetattr, tcsetattr, read, tcsetattr
+#include "pthread.h" // pthread_t, pthread_create, pthread_join
 #include "termios.h" // termios
-#include "pthread.h"    // pthread_t, pthread_create, pthread_join
 
 typedef pthread_t cross_thread_t;
-typedef void* thread_return_t;
+typedef void *thread_return_t;
 
 #endif
 
 typedef thread_return_t (*thread_func_t)(void *);
-
-
 
 // just for IDE
 #ifndef CLOCK_MONOTONIC_RAW
@@ -43,7 +42,6 @@ typedef thread_return_t (*thread_func_t)(void *);
 #endif
 
 // #define pub // for lib export
-
 
 // u8, u16, u32, u64, usize
 // i8, i16, i32, i64, isize
@@ -64,17 +62,17 @@ typedef ssize_t isize;
 typedef float f32;
 typedef double f64;
 
-
 //
 // string
 //
 
-u8* duplicate_string(const u8* str);
+char *duplicate_string(const char *str);
 
 // Duplicate and allocate string
-u8* duplicate_string(const u8* str) {
-    if (str == NULL) return NULL;
-    u8* dup_str = malloc(strlen(str) + 1);
+char *duplicate_string(const char *str) {
+    if (str == NULL)
+        return NULL;
+    char *dup_str = malloc(strlen(str) + 1);
     if (dup_str) {
         strcpy(dup_str, str);
     }
@@ -86,12 +84,12 @@ u8* duplicate_string(const u8* str) {
 //
 
 // Reads a single key without waiting for Enter
-u8 cross_getchar() {
+char cross_getchar() {
 #ifdef _WIN32
     return _getch();
 #else
     struct termios oldt, newt;
-    u8 ch;
+    char ch;
 
     // Get current terminal settings
     tcgetattr(STDIN_FILENO, &oldt);
@@ -101,7 +99,7 @@ u8 cross_getchar() {
     newt.c_lflag &= ~(ICANON | ECHO);
     tcsetattr(STDIN_FILENO, TCSANOW, &newt);
 
-    read(STDIN_FILENO, &ch, 1);  // Read 1 character
+    read(STDIN_FILENO, &ch, 1); // Read 1 character
 
     // Restore original terminal settings
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
@@ -109,7 +107,6 @@ u8 cross_getchar() {
     return ch;
 #endif
 }
-
 
 //
 // sleep
@@ -125,7 +122,6 @@ void sleep_ms(u64 ms) {
 #endif
 }
 
-
 //
 // thread
 //
@@ -134,18 +130,17 @@ u32 cross_thread_create_basic(cross_thread_t *t, thread_func_t func);
 cross_thread_t cross_thread_create(thread_func_t func);
 u32 cross_thread_join(cross_thread_t t);
 
-
 #ifdef _WIN32
 
 static DWORD WINAPI win_thread_func(LPVOID arg) {
-    thread_func_t func = ((thread_func_t*)arg)[0];
-    void *farg = ((void**)arg)[1];
+    thread_func_t func = ((thread_func_t *)arg)[0];
+    void *farg = ((void **)arg)[1];
     free(arg);
     return func(farg);
 }
 
 u32 cross_thread_create(cross_thread_t *t, thread_func_t func, void *arg) {
-    void **pack = malloc(2 * sizeof(void*));
+    void **pack = malloc(2 * sizeof(void *));
     pack[0] = func;
     pack[1] = arg;
     *t = CreateThread(NULL, 0, win_thread_func, pack, 0, NULL);
@@ -164,9 +159,7 @@ u32 cross_thread_create_basic(cross_thread_t *t, thread_func_t func) {
     return pthread_create(t, NULL, func, NULL);
 }
 
-u32 cross_thread_join(cross_thread_t t) {
-    return pthread_join(t, NULL);
-}
+u32 cross_thread_join(cross_thread_t t) { return pthread_join(t, NULL); }
 
 #endif
 
@@ -190,7 +183,6 @@ void cross_clear() {
 #endif
 }
 
-
 //
 // time: now_seconds now_milliseconds now_microseconds now_nanoseconds
 //
@@ -200,10 +192,7 @@ u64 now_milliseconds();
 u64 now_microseconds();
 u64 now_nanoseconds();
 
-u32 now_seconds() {
-    return time(NULL);
-}
-
+u32 now_seconds() { return time(NULL); }
 
 u64 now_milliseconds() {
 #ifdef _WIN32
@@ -222,7 +211,6 @@ u64 now_milliseconds() {
 #endif
 }
 
-
 #ifdef _WIN32
 
 // Get current time in microseconds
@@ -238,7 +226,8 @@ u64 now_nanoseconds() {
     LARGE_INTEGER frequency, counter;
     QueryPerformanceFrequency(&frequency);
     QueryPerformanceCounter(&counter);
-    return (counter.QuadPart * 1000000000LL) / frequency.QuadPart; // Convert to nanoseconds
+    return (counter.QuadPart * 1000000000LL) /
+           frequency.QuadPart; // Convert to nanoseconds
 }
 
 #else
@@ -253,40 +242,41 @@ u64 now_microseconds() {
 // Get monotonic time in nanoseconds
 u64 now_nanoseconds() {
     struct timespec ts;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &ts); // CLOCK_MONOTONIC for a steady clock
-    return (u64)(ts.tv_sec) * 1000000000LL + ts.tv_nsec; // Convert to nanoseconds
+    clock_gettime(CLOCK_MONOTONIC_RAW,
+                  &ts); // CLOCK_MONOTONIC for a steady clock
+    return (u64)(ts.tv_sec) * 1000000000LL +
+           ts.tv_nsec; // Convert to nanoseconds
 }
 
 #endif
-
 
 //
 // measure_end
 //
 
-int fmt_nano_buf(u8* buf, u64 nano);
+i32 fmt_nano_buf(char *buf, u64 nano);
 
-int fmt_nano_buf(u8* buf, u64 nano) {
-    if(nano < 1000) {
+i32 fmt_nano_buf(char *buf, u64 nano) {
+    if (nano < 1000) {
         return sprintf(buf, "%3.2fns\n", (f64)nano);
-    } else if(nano < 1000000) {
+    } else if (nano < 1000000) {
         return sprintf(buf, "%3.2fμs\n", (f64)nano / 1000.0);
-    } else if(nano < 1000000000) {
+    } else if (nano < 1000000000) {
         return sprintf(buf, "%3.2fms\n", (f64)nano / 1000000.0);
-    } else if(nano < 1000000000000LL) {
+    } else if (nano < 1000000000000LL) {
         return sprintf(buf, "%3.2fs\n", (f64)nano / 1000000000.0);
-    } else if(nano < 60LL * 1000000000000LL) {
+    } else if (nano < 60LL * 1000000000000LL) {
         return sprintf(buf, "%3.2fm\n", (f64)nano / (60.0 * 1000000000.0));
     } else {
         return sprintf(buf, "%3.2fh\n", (f64)nano / (360.0 * 1000000000.0));
     }
 }
 
-u8* timer_label;
+char *timer_label;
 u64 timer_start_time;
 
 // like JS console.time
-void timer_start(u8* label) {
+void timer_start(char *label) {
     timer_label = label;
     timer_start_time = now_nanoseconds();
 }
@@ -294,7 +284,7 @@ void timer_start(u8* label) {
 // like JS console.timeEnd
 void timer_end() {
     timer_start_time = now_nanoseconds() - timer_start_time;
-    u8 buf[64];
+    char buf[64];
     strcpy(buf, timer_label);
     usize buf_len = strlen(buf);
     buf[buf_len++] = ':';
@@ -303,32 +293,31 @@ void timer_end() {
     puts(buf);
 }
 
-
 //
 // randomize
 //
 
 void randomize();
 
-void randomize() {
-    srand(time(NULL));
-}
+void randomize() { srand(time(NULL)); }
 
 //
 // Files
 //
 
-u8* read_file_alloc(const u8* const filename) {
+char *read_file_alloc(const char *const filename) {
     FILE *file = fopen(filename, "r");
-    if (file == NULL) return NULL;
+    if (file == NULL)
+        return NULL;
 
     // Move the file pointer to the end of the file to get the size
     fseek(file, 0, SEEK_END);
     u32 fileSize = ftell(file);
-    fseek(file, 0, SEEK_SET);  // Move back to the beginning of the file
+    fseek(file, 0, SEEK_SET); // Move back to the beginning of the file
 
-    // Allocate memory for the file content, including space for the null terminator
-    u8 *content = (u8 *)malloc(fileSize + 1);
+    // Allocate memory for the file content, including space for the null
+    // terminator
+    char *content = (char *)malloc(fileSize + 1);
     if (content == NULL) {
         perror("Failed to allocate memory");
         fclose(file);
@@ -337,7 +326,7 @@ u8* read_file_alloc(const u8* const filename) {
 
     // Read the file contents into the allocated memory
     u32 bytesRead = fread(content, 1, fileSize, file);
-    content[bytesRead] = '\0';  // Null-terminate the string
+    content[bytesRead] = '\0'; // Null-terminate the string
 
     // Close the file
     fclose(file);
@@ -345,9 +334,10 @@ u8* read_file_alloc(const u8* const filename) {
     return content;
 }
 
-u32 read_file_len(const u8* const filename) {
+u32 read_file_len(const char *const filename) {
     FILE *file = fopen(filename, "r");
-    if (file == NULL) return 0;
+    if (file == NULL)
+        return 0;
 
     // Move the file pointer to the end of the file to get the size
     fseek(file, 0, SEEK_END);
@@ -356,13 +346,14 @@ u32 read_file_len(const u8* const filename) {
     return fileSize;
 }
 
-bool read_file_buf(u8* buf, const u32 fileSize, const u8* const filename) {
+bool read_file_buf(char *buf, const u32 fileSize, const char *const filename) {
     FILE *file = fopen(filename, "r");
-    if (file == NULL) return NULL;
+    if (file == NULL)
+        return NULL;
 
     // Read the file contents into the allocated memory
     u32 bytesRead = fread(buf, 1, fileSize, file);
-    buf[bytesRead] = '\0';  // Null-terminate the string
+    buf[bytesRead] = '\0'; // Null-terminate the string
 
     // Close the file
     fclose(file);
@@ -370,29 +361,69 @@ bool read_file_buf(u8* buf, const u32 fileSize, const u8* const filename) {
     return true;
 }
 
-u8 write_file(const u8* const path, const u8* const src) {
-    FILE* file = fopen(path, "w");
+int create_parent_dirs(const char *path) {
+    char tmp[1024];
 
-    if (file == NULL) return 1;
+    if (strlen(path) >= sizeof(tmp))
+        return 1;
+
+    strcpy(tmp, path);
+
+    // Find the filename and remove it
+    char *last_slash = strrchr(tmp, '/');
+
+    if (!last_slash)
+        return 0; // No directory in path
+
+    *last_slash = '\0';
+
+    // Create each directory
+    for (char *p = tmp + 1; *p; p++) {
+        if (*p == '/') {
+            *p = '\0';
+
+            if (mkdir(tmp, 0755) != 0 && errno != EEXIST)
+                return 1;
+
+            *p = '/';
+        }
+    }
+
+    if (mkdir(tmp, 0755) != 0 && errno != EEXIST)
+        return 1;
+
+    return 0;
+}
+
+char write_file(const char *const path, const char *const src) {
+    if (create_parent_dirs(path))
+        return 1;
+
+    FILE *file = fopen(path, "w");
+
+    if (file == NULL)
+        return 1;
 
     fputs(src, file);
 
     // Close the file when done
     fclose(file);
+
+    return 0;
 }
 
 // // TODO
 // // scan_dir_alloc
 // //
 
-// u8** scan_dir_alloc() {
-//     const u8 *dir_name = "src";
+// char** scan_dir_alloc() {
+//     const char *dir_name = "src";
 //     DIR *dir = opendir(dir_name);  // Open the directory
 
 //     if (dir == NULL) return NULL;
 
 //     struct dirent *entry;
-    
+
 //     // Read entries from the directory one by one
 //     while ((entry = readdir(dir)) != NULL) {
 //         // Print the name of the file or directory

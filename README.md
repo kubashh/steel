@@ -19,6 +19,7 @@ Should be low level, simple, fast (like C or better), programmong language and t
 - Allow optional function parameters.
 - Provide automatic code formatting.
 - Automatically handle array and string lengths (arr.len, str.len).
+- Minimalistic but powerfull std
 
 ## License MIT
 
@@ -26,9 +27,22 @@ Should be low level, simple, fast (like C or better), programmong language and t
 
 To contribute open an issue or contact me.
 
+### Code standarts
+
+- tab size 4
+- K&R braces
+
 ## Compiler steps
 
-- Code (text)
+- Don't need headers, can read files form `steel.json`
+
+## TODO
+
+- read and execute config (v0.1.0)
+- compile to `C`
+- auto include (v0.2.0) - no imports
+
+- compiler
   - Tokenize
     - AST
       - Check syntax
@@ -38,13 +52,10 @@ To contribute open an issue or contact me.
         - AST
           - Code gen
 
-- Don't need headers, can read files form `steel.json`
-
-## TODO
-
-- read and execute config (v0.1.0)
-- compile to `C`
-- auto include (v0.2.0) - no imports
+- API
+  - FS
+  - Process
+  - JSON
 
 ### 0.0.1-dev (Pending...)
 

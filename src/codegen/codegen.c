@@ -1,4 +1,3 @@
 #include "../lib/lib.c"
 
-void codegen() {
-}
+void codegen() {}

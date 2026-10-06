@@ -1,4 +1,3 @@
 #include "../lib/lib.c"
 
-void ast_simplify() {
-}
+void ast_simplify() {}

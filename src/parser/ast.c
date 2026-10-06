@@ -21,7 +21,6 @@
 
 typedef struct ASTNode ASTNode;
 
-
 enum ASTNodeType {
     AST_PROGRAM,
     AST_FILE,
@@ -34,7 +33,7 @@ enum ASTNodeType {
 };
 
 typedef struct ASTBlock {
-    ASTNode** block;
+    ASTNode **block;
     u32 len;
 } ASTBlock;
 
@@ -48,15 +47,15 @@ typedef struct ASTNode {
     union {
         // ASTBlock
         struct {
-            ASTNode** block;
+            ASTNode **block;
             u32 block_len;
         };
     };
 } ASTNode;
 
 // to opt
-void AST_add(ASTNode* el, ASTNode* new) {
-    if(el->block == NULL) {
+void AST_add(ASTNode *el, ASTNode *new) {
+    if (el->block == NULL) {
         el->block = malloc(sizeof(ASTNode));
         el->block_len = 1;
     } else {
@@ -66,31 +65,33 @@ void AST_add(ASTNode* el, ASTNode* new) {
     el->block[el->block_len - 1] = new;
 }
 
-void AST_print(ASTNode* program) {
+void AST_print(ASTNode *program) {
     // TODO printf();
 }
 
 // will do AST + Tokenization
-ASTNode* AST_init(FileTokens tokens) {
+ASTNode *AST_init(FileTokens tokens) {
     printf("Parsing %s\n", tokens.path);
     // // Print tokens
-    // // u8 buf[64 * 1024];
+    // // char buf[64 * 1024];
     // // i32 buf_i = 0;
     // for(i32 j = 0; j < tokens.len - 1; j++) {
     //     // buf_i += sprintf(&buf[buf_i], "%s ", tokens.tokens[j].value);
-    //     printf("%10s:   %s\n", TYPES_NAMES[tokens.tokens[j].type], tokens.tokens[j].value);
+    //     printf("%10s:   %s\n", TYPES_NAMES[tokens.tokens[j].type],
+    //     tokens.tokens[j].value);
     // }
     // // buf[buf_i] = '\0';
     // // puts(buf);
 
-    ASTNode* program = malloc(sizeof(ASTNode));
+    ASTNode *program = malloc(sizeof(ASTNode));
     program->type = AST_FILE;
     // program->block = malloc()
 
-
     // Free/ need fix sth see all malloc and free
+
+    return program;
 }
 
-void AST_deinit(ASTNode* program) {
+void AST_deinit(ASTNode *program) {
     // free
 }
